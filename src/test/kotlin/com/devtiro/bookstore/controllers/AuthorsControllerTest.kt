@@ -4,6 +4,7 @@ import com.devtiro.bookstore.domain.entities.AuthorEntity
 import com.devtiro.bookstore.services.AuthorService
 import com.devtiro.bookstore.testAuthorDtoA
 import com.devtiro.bookstore.testAuthorEntityA
+import com.devtiro.bookstore.testAuthorUpdateRequestDtoA
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -16,8 +17,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
 
 private const val AUTHORS_BASE_URL = "/v1/authors"
 
@@ -33,7 +37,7 @@ class AuthorsControllerTest @Autowired constructor(
     @BeforeEach
     fun beforeEach() {
         every {
-            authorService.save(any())
+            authorService.create(any())
         } answers {
             firstArg()
         }
@@ -57,7 +61,7 @@ class AuthorsControllerTest @Autowired constructor(
             image = "author-image.jpeg"
         )
 
-        verify{ authorService.save(expected) }
+        verify{ authorService.create(expected) }
     }
 
     @Test
@@ -70,6 +74,23 @@ class AuthorsControllerTest @Autowired constructor(
             )
         }.andExpect {
             status { isCreated() }
+        }
+    }
+
+    @Test
+    fun `test that create Author returns HTTP 400 when Illegal Argument Exception is thrown`() {
+        every {
+            authorService.create(any())
+        } throws (IllegalArgumentException())
+
+        mockMvc.post(AUTHORS_BASE_URL) {
+            contentType = MediaType.APPLICATION_JSON
+            accept = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                testAuthorDtoA()
+            )
+        }.andExpect {
+            status { isBadRequest() }
         }
     }
 
@@ -145,6 +166,96 @@ class AuthorsControllerTest @Autowired constructor(
             content { jsonPath("$.age", equalTo(30)) }
             content { jsonPath("$.description", equalTo("Some description.")) }
             content { jsonPath("$.image", equalTo("author-image.jpeg")) }
+        }
+    }
+
+    @Test
+    fun `test that full update Author returns HTTP 200 and updated Author on successful call`() {
+        every {
+            authorService.fullUpdate(any(), any())
+        } answers {
+            secondArg()
+        }
+
+        mockMvc.put("${AUTHORS_BASE_URL}/999") {
+            contentType = MediaType.APPLICATION_JSON
+            accept = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(testAuthorEntityA(id = 999))
+        }.andExpect {
+            status { isOk() }
+            content { jsonPath("$.id", equalTo(999)) }
+            content { jsonPath("$.name", equalTo("John Doe")) }
+            content { jsonPath("$.age", equalTo(30)) }
+            content { jsonPath("$.description", equalTo("Some description.")) }
+            content { jsonPath("$.image", equalTo("author-image.jpeg")) }
+        }
+    }
+
+    @Test
+    fun `test that full update Author returns HTTP 400 on IllegalStateException`() {
+        every {
+            authorService.fullUpdate(any(), any())
+        } throws (IllegalStateException())
+
+        mockMvc.put("${AUTHORS_BASE_URL}/999") {
+            contentType = MediaType.APPLICATION_JSON
+            accept = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(testAuthorEntityA(id = 999))
+        }.andExpect {
+            status { isBadRequest() }
+        }
+    }
+
+    @Test
+    fun `test that partial update Author returns HTTP 400 on IllegalStateException`() {
+        every {
+            authorService.partialUpdate(any(), any())
+        } throws IllegalStateException()
+
+        mockMvc.patch("${AUTHORS_BASE_URL}/999") {
+            contentType = MediaType.APPLICATION_JSON
+            accept = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(testAuthorUpdateRequestDtoA(999L))
+        }.andExpect {
+            status { isBadRequest() }
+        }
+    }
+
+    @Test
+    fun `test that partial update Author returns HTTP 200 and updated authors`() {
+        every {
+            authorService.partialUpdate(any(), any())
+        } answers {
+            testAuthorEntityA(id = 999)
+        }
+
+        mockMvc.patch("${AUTHORS_BASE_URL}/999") {
+            contentType = MediaType.APPLICATION_JSON
+            accept = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                testAuthorUpdateRequestDtoA(999L)
+            )
+        }.andExpect {
+            status { isOk() }
+            content { jsonPath("$.id", equalTo(999)) }
+            content { jsonPath("$.name", equalTo("John Doe")) }
+            content { jsonPath("$.age", equalTo(30)) }
+            content { jsonPath("$.description", equalTo("Some description.")) }
+            content { jsonPath("$.image", equalTo("author-image.jpeg")) }
+        }
+    }
+
+    @Test
+    fun `test that delete Author returns HTTP 204 on successful delete`() {
+        every {
+            authorService.delete(any())
+        } answers {}
+
+        mockMvc.delete("${AUTHORS_BASE_URL}/999") {
+            contentType = MediaType.APPLICATION_JSON
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isNoContent() }
         }
     }
 
