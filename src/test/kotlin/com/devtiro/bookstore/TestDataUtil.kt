@@ -1,9 +1,16 @@
 package com.devtiro.bookstore
 
+import com.devtiro.bookstore.domain.AuthorSummary
 import com.devtiro.bookstore.domain.AuthorUpdateRequest
+import com.devtiro.bookstore.domain.BookSummary
 import com.devtiro.bookstore.domain.dto.AuthorDto
+import com.devtiro.bookstore.domain.dto.AuthorSummaryDto
 import com.devtiro.bookstore.domain.dto.AuthorUpdateRequestDto
+import com.devtiro.bookstore.domain.dto.BookSummaryDto
 import com.devtiro.bookstore.domain.entities.AuthorEntity
+import com.devtiro.bookstore.domain.entities.BookEntity
+
+const val BOOK_A_ISBN: String = "978-089-230342-0777"
 
 fun testAuthorDtoA(id: Long? = null) = AuthorDto(
     id = id,
@@ -29,6 +36,18 @@ fun testAuthorEntityB(id: Long? = null) = AuthorEntity(
     image = "some-other-image.jpeg"
 )
 
+fun testAuthorSummaryDtoA(id: Long) = AuthorSummaryDto(
+    id = id,
+    name = "John Doe",
+    image = "author-image.jpeg"
+)
+
+fun testAuthorSummaryA(id: Long) = AuthorSummary(
+    id = id,
+    name = "John Doe",
+    image = "author-image.jpeg"
+)
+
 fun testAuthorUpdateRequestDtoA(id: Long? = null) = AuthorUpdateRequestDto(
     id = id,
     name = "John Doe",
@@ -44,3 +63,36 @@ fun testAuthorUpdateRequestA(id: Long? = null) = AuthorUpdateRequest(
     description = "Some description.",
     image = "some-image.jpeg"
 )
+
+fun testBookEntityA(isbn: String, author: AuthorEntity) = BookEntity(
+    isbn = isbn,
+    title = "Test Book A",
+    description = "A test book",
+    image = "book-image.jpeg",
+    authorEntity = author
+)
+
+fun testBookSummaryDtoA(isbn: String, author: AuthorSummaryDto) = BookSummaryDto(
+    isbn = isbn,
+    title = "Test Book A",
+    description = "A test book",
+    image = "book-image.jpeg",
+    author = author
+)
+
+fun testBookSummaryA(isbn: String, author: AuthorSummary) = BookSummary(
+    isbn = isbn,
+    title = "Test Book A",
+    description = "A test book",
+    image = "book-image.jpeg",
+    author = author
+)
+
+fun testBookSummaryB(isbn: String, author: AuthorSummary) = BookSummary(
+    isbn = isbn,
+    title = "Test Book B",
+    description = "Another test book",
+    image = "book-image-b.jpeg",
+    author = author
+)
+
